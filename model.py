@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib
+import numpy as np
 
 matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
@@ -7,20 +7,18 @@ from scipy.integrate import odeint
 
 
 def sim(variables, t, params):
-    # fish population level
-    x = variables[0]
-    # bear population level
-    y = variables[1]
+    V = variables[0]  # Prey population
+    P = variables[1]  # Predator population
 
     alpha = params[0]
     beta = params[1]
-    delta = params[2]
-    gamma = params[3]
+    epsilon = params[2]
+    b = params[3]
 
-    dxdt = alpha * x - beta * x * y  # growth rate of fish population
-    dydt = delta * x * y - gamma * y  # growth rate of bear population
+    dVdt = (beta - alpha * P) * V  # growth rate of Preys
+    dPdt = (alpha * b * V - epsilon) * P  # growth rate of Predators
 
-    return [dxdt, dydt]
+    return [dVdt, dPdt]
 
 
 def plot_population_vs_time(t, y):
@@ -29,14 +27,14 @@ def plot_population_vs_time(t, y):
     # Plot population vs. time
     line1, = ax1.plot(t, y[:, 0], color="b")
     line2, = ax2.plot(t, y[:, 1], color="r")
-    ax1.set_ylabel("Fish (hundreds)")
-    ax2.set_ylabel("Bears (hundreds)")
+    ax1.set_ylabel("Preys")
+    ax2.set_ylabel("Predators")
     ax2.set_xlabel("Time")
 
     # Plot combined graph
-    ax3.plot(t, y[:, 0], color="b", label="Fish")
-    ax3.plot(t, y[:, 1], color="r", label="Bears")
-    ax3.set_ylabel("Population (hundreds)")
+    ax3.plot(t, y[:, 0], color="b", label="Preys")
+    ax3.plot(t, y[:, 1], color="r", label="Predators")
+    ax3.set_ylabel("Population")
     ax3.set_xlabel("Time")
     ax3.legend()
 
@@ -48,22 +46,23 @@ def plot_phase_graph(y):
     fig_phase = plt.figure()
     ax_phase = fig_phase.add_subplot(111)
     line3, = ax_phase.plot(y[:, 0], y[:, 1], color="g")
-    ax_phase.set_xlabel("Fish (hundreds)")
-    ax_phase.set_ylabel("Bears (hundreds)")
+    ax_phase.set_xlabel("Prey")
+    ax_phase.set_ylabel("Predators")
     # plt.show()
 
 
 if __name__ == '__main__':
     t = np.linspace(0, 50, num=1000)
 
-    alpha = 1.1
-    beta = 0.4
-    delta = 0.1
-    gamma = 0.4
+    alpha = 0.4  # hunting efficiency
+    beta = 1.1  # reproduction rate of the prey
+    epsilon = 0.4  # mortality rate of predators
+    b = 0.25  # reproduction rate of predators (proportion of "biomass" of captured prey utilized by predators in the reproductive process
 
-    y0 = [10, 1]  # [fish, bears] units in hundreds
-    # y0 = [gamma/delta, alpha/beta]  # [fish, bears] units in hundreds
-    params = [alpha, beta, delta, gamma]
+    y0 = [10, 1]  # [Preys, Predators] units in hundreds
+    # y0 = [epsilon/(alpha*b), beta/alpha]
+
+    params = [alpha, beta, epsilon, b]
 
     y = odeint(sim, y0, t, args=(params,))
 

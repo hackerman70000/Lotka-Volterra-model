@@ -1,3 +1,4 @@
+
 import matplotlib
 import numpy as np
 from numpy import inf
@@ -5,7 +6,8 @@ from numpy import inf
 matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
-
+from matplotlib.widgets import Slider
+from matplotlib import gridspec
 
 def sim(variables, t, params):
     V = variables[0]  # Prey population
@@ -23,8 +25,8 @@ def sim(variables, t, params):
     return [dVdt, dPdt]
 
 
-def plot_population_vs_time(t, y):
-    fig, (ax1, ax2, ax3) = plt.subplots(3, figsize=(8, 10))
+def plot_population_vs_time(t, y, y_phase):
+    fig, (ax1, ax2, ax3) = plt.subplots(3, figsize=(12, 10))
 
     line1, = ax1.plot(t, y[:, 0], color="b")
     line2, = ax2.plot(t, y[:, 1], color="r")
@@ -39,24 +41,16 @@ def plot_population_vs_time(t, y):
     ax3.set_xlabel("Time")
     ax3.legend()
 
-    ax1.set_title("Prey population over time")
-    ax2.set_title("Predator population over time")
-    ax3.set_title("Prey and predator population over time")
-    plt.tight_layout()
-
-
-def plot_phase_graph(y):
-    fig_phase = plt.figure()
-    ax_phase = fig_phase.add_subplot(111)
-    line3, = ax_phase.plot(y[:, 0], y[:, 1], color="g")
-    ax_phase.set_xlabel("Prey")
-    ax_phase.set_ylabel("Predators")
-    ax_phase.set_title("Phase portrait of prey and predator populations")
+    ax4 = fig.add_subplot(2, 2, 4)
+    ax4.plot(y_phase[:, 0], y_phase[:, 1], color="g")
+    ax4.set_xlabel("Prey")
+    ax4.set_ylabel("Predators")
+    ax4.set_title("Phase portrait of prey and predator populations")
 
     arrow_interval = 1000
 
     for i in range(0, len(y) - 1, arrow_interval):
-        ax_phase.annotate(
+        ax4.annotate(
             '',
             xy=(y[i + 1, 0], y[i + 1, 1]),
             xytext=(y[i, 0], y[i, 1]),
@@ -67,6 +61,29 @@ def plot_phase_graph(y):
                 color='black'
             )
         )
+
+    plt.tight_layout()
+
+
+def update(val):
+    alpha = s_alpha.val
+    beta = s_beta.val
+    epsilon = s_epsilon.val
+    b = s_b.val
+    K = s_K.val
+
+    params = [alpha, beta, epsilon, b, K]
+
+    y = odeint(sim, y0, t, args=(params,))
+    y_phase = y[:, :2]
+
+    for line in lines:
+        line.set_ydata(y[:, lines.index(line)])
+
+    line_phase.set_xdata(y_phase[:, 0])
+    line_phase.set_ydata(y_phase[:, 1])
+
+    fig.canvas.draw_idle()
 
 
 if __name__ == '__main__':
@@ -87,7 +104,43 @@ if __name__ == '__main__':
     params = [alpha, beta, epsilon, b, K1]
 
     y = odeint(sim, y0, t, args=(params,))
+    y_phase = y[:, :2]
 
-    plot_population_vs_time(t, y)
-    plot_phase_graph(y)
+    fig = plt.figure(figsize=(10, 4))  # Adjust the figure size
+    gs = gridspec.GridSpec(1, 2, width_ratios=[5, 1])  # Adjust the grid specifications
+
+    ax1 = plt.subplot(gs[0])
+    ax2 = plt.subplot(gs[1])  # Add aspect='equal' to make the phase plot have a 1:1 ratio
+
+
+    lines = ax1.plot(t, y)
+    line_phase, = ax2.plot(y_phase[:, 0], y_phase[:, 1], color="g")
+    ax1.set_xlabel("Time")
+    ax1.set_ylabel("Population")
+    ax1.legend(['Prey', 'Predators'])
+    ax1.set_title("Prey and predator populations over time")
+
+    ax2.set_xlabel("Prey")
+    ax2.set_ylabel("Predators")
+    ax2.set_title("Phase portrait of prey and predator populations")
+
+    axcolor = 'lightgoldenrodyellow'
+    ax_alpha = plt.axes([0.25, 0.05, 0.65, 0.03], facecolor=axcolor)
+    ax_beta = plt.axes([0.25, 0.10, 0.65, 0.03], facecolor=axcolor)
+    ax_epsilon = plt.axes([0.25, 0.15, 0.65, 0.03], facecolor=axcolor)
+    ax_b = plt.axes([0.25, 0.20, 0.65, 0.03], facecolor=axcolor)
+    ax_K = plt.axes([0.25, 0.25, 0.65, 0.03], facecolor=axcolor)
+
+    s_alpha = Slider(ax_alpha, 'Alpha', 0.1, 1.0, valinit=alpha)
+    s_beta = Slider(ax_beta, 'Beta', 0.1, 2.0, valinit=beta)
+    s_epsilon = Slider(ax_epsilon, 'Epsilon', 0.1, 1.0, valinit=epsilon)
+    s_b = Slider(ax_b, 'b', 0.1, 1.0, valinit=b)
+    s_K = Slider(ax_K, 'K', 1, 100, valinit=K1)
+
+    s_alpha.on_changed(update)
+    s_beta.on_changed(update)
+    s_epsilon.on_changed(update)
+    s_b.on_changed(update)
+    s_K.on_changed(update)
+
     plt.show()

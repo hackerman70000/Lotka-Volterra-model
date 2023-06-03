@@ -103,7 +103,7 @@ if __name__ == '__main__':
     y = odeint(sim, y0, t, args=(params,))
     y_phase = y[:, :2]
 
-    fig = plt.figure(figsize=(18, 7))  # Adjust the figure size
+    fig = plt.figure(figsize=(18, 5))  # Adjust the figure size
     gs = gridspec.GridSpec(1, 2, width_ratios=[5, 1])  # Adjust the grid specifications
 
     ax1 = plt.subplot2grid((5, 5), (0, 0), rowspan=4, colspan=4)

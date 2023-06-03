@@ -1,4 +1,3 @@
-
 import matplotlib
 import numpy as np
 from numpy import inf
@@ -8,6 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from matplotlib.widgets import Slider
 from matplotlib import gridspec
+
 
 def sim(variables, t, params):
     V = variables[0]  # Prey population
@@ -93,11 +93,8 @@ if __name__ == '__main__':
     beta = 1.1  # reproduction rate of the prey
     epsilon = 0.4  # mortality rate of predators
     b = 0.25  # reproduction rate of predators
-
-    # Different use cases for K
     K1 = inf  # capacity of the environment
-    K2 = 100
-    K3 = 10
+
 
     y0 = [10, 2]  # [Prey, Predators] units
 
@@ -106,12 +103,11 @@ if __name__ == '__main__':
     y = odeint(sim, y0, t, args=(params,))
     y_phase = y[:, :2]
 
-    fig = plt.figure(figsize=(10, 4))  # Adjust the figure size
+    fig = plt.figure(figsize=(18, 7))  # Adjust the figure size
     gs = gridspec.GridSpec(1, 2, width_ratios=[5, 1])  # Adjust the grid specifications
 
-    ax1 = plt.subplot(gs[0])
-    ax2 = plt.subplot(gs[1])  # Add aspect='equal' to make the phase plot have a 1:1 ratio
-
+    ax1 = plt.subplot2grid((5, 5), (0, 0), rowspan=4, colspan=4)
+    ax2 = plt.subplot2grid((5, 5), (0, 4), rowspan=4, colspan=1)
 
     lines = ax1.plot(t, y)
     line_phase, = ax2.plot(y_phase[:, 0], y_phase[:, 1], color="g")
@@ -125,17 +121,18 @@ if __name__ == '__main__':
     ax2.set_title("Phase portrait of prey and predator populations")
 
     axcolor = 'lightgoldenrodyellow'
-    ax_alpha = plt.axes([0.25, 0.05, 0.65, 0.03], facecolor=axcolor)
-    ax_beta = plt.axes([0.25, 0.10, 0.65, 0.03], facecolor=axcolor)
-    ax_epsilon = plt.axes([0.25, 0.15, 0.65, 0.03], facecolor=axcolor)
-    ax_b = plt.axes([0.25, 0.20, 0.65, 0.03], facecolor=axcolor)
-    ax_K = plt.axes([0.25, 0.25, 0.65, 0.03], facecolor=axcolor)
+    ax_alpha = plt.axes([0.15, 0.05, 0.3, 0.03], facecolor=axcolor)
+    ax_epsilon = plt.axes([0.15, 0.1, 0.3, 0.03], facecolor=axcolor)
+    ax_b = plt.axes([0.65, 0.1, 0.3, 0.03], facecolor=axcolor)
+    ax_beta = plt.axes([0.65, 0.05, 0.3, 0.03], facecolor=axcolor)
+    ax_K = plt.axes([0.15, 0.15, 0.3, 0.03], facecolor=axcolor)
 
-    s_alpha = Slider(ax_alpha, 'Alpha', 0.1, 1.0, valinit=alpha)
-    s_beta = Slider(ax_beta, 'Beta', 0.1, 2.0, valinit=beta)
-    s_epsilon = Slider(ax_epsilon, 'Epsilon', 0.1, 1.0, valinit=epsilon)
-    s_b = Slider(ax_b, 'b', 0.1, 1.0, valinit=b)
-    s_K = Slider(ax_K, 'K', 1, 100, valinit=K1)
+    s_alpha = Slider(ax_alpha, 'Alpha - hunting efficiency', 0.1, 1.0, valinit=alpha)
+    s_epsilon = Slider(ax_epsilon, 'Epsilon - mortality rate of predators', 0.1, 1.0, valinit=epsilon)
+    s_K = Slider(ax_K, 'K - capacity of the environment', 1, 100, valinit=K1)
+    s_b = Slider(ax_b, 'b - reproduction rate of predators', 0.1, 1.0, valinit=b)
+    s_beta = Slider(ax_beta, 'Beta - reproduction rate of the prey', 0.1, 2.0, valinit=beta)
+
 
     s_alpha.on_changed(update)
     s_beta.on_changed(update)
